@@ -1,0 +1,14 @@
+[package]
+name = "static_map"
+version = "0.1.0"
+edition = "2021"
+authors = ["Maxim Zhiburt <zhiburt@gmail.com>"]
+description = "A rust macro to build a static `Map` based on const array"
+repository = "https://github.com/zhiburt/static_map"
+homepage = "https://github.com/zhiburt/static_map"
+documentation = "https://docs.rs/static_map"
+keywords = ["map", "hashmap", "dictionary", "macros", "macro"]
+license = "MIT"
+
+[dependencies]
+paste = "1.0"

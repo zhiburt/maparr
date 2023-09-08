@@ -1,3 +1,5 @@
+#![no_std]
+
 #[allow(unused)]
 #[doc(hidden)]
 pub use paste as __private_paste;
@@ -143,15 +145,6 @@ macro_rules! static_map {
                 pub fn iter_mut(&mut self) -> impl IntoIterator<Item=&mut T> {
                     self.list.iter_mut()
                 }
-
-                /// Get an list of keys supported.
-                pub fn keys() -> [[<__private_id_ $name>]::ID; [<__private_size_ $name>]::SIZE] {
-                    [
-                        $(
-                            $name::$id
-                        ),*
-                    ]
-                }
             }
 
             #[allow(unused)]
@@ -164,6 +157,15 @@ macro_rules! static_map {
                 /// Check whether the map is empty.
                 pub const fn is_empty() -> bool {
                     [<__private_size_ $name>]::SIZE == 0
+                }
+
+                /// Get an list of keys supported.
+                pub const fn keys() -> [[<__private_id_ $name>]::ID; [<__private_size_ $name>]::SIZE] {
+                    [
+                        $(
+                            $name::$id
+                        ),*
+                    ]
                 }
             }
 
@@ -297,15 +299,6 @@ macro_rules! static_map {
                 pub fn iter_mut(&mut self) -> impl IntoIterator<Item=&mut $name_type> {
                     self.list.iter_mut()
                 }
-
-                /// Get an list of keys supported.
-                pub fn keys() -> [[<__private_id_ $name>]::ID; [<__private_size_ $name>]::SIZE] {
-                    [
-                        $(
-                            $name::$id
-                        ),*
-                    ]
-                }
             }
 
             #[allow(unused)]
@@ -318,6 +311,15 @@ macro_rules! static_map {
                 /// Check whether the map is empty.
                 pub const fn is_empty() -> bool {
                     [<__private_size_ $name>]::SIZE == 0
+                }
+
+                /// Get an list of keys supported.
+                pub const fn keys() -> [[<__private_id_ $name>]::ID; [<__private_size_ $name>]::SIZE] {
+                    [
+                        $(
+                            $name::$id
+                        ),*
+                    ]
                 }
             }
 
@@ -476,6 +478,7 @@ mod tests {
 
     #[rustfmt::skip]
     #[test]
+    #[cfg(std)]
     fn check_interface() {
         static_map!(#[derive(Debug, Clone)] Map; ID_1, ID_2, ID_3, ID_4);
 
@@ -518,6 +521,7 @@ mod tests {
 
     #[rustfmt::skip]
     #[test]
+    #[cfg(std)]
     fn check_interface_generic() {
         static_map!(#[derive(Debug, Clone)] Map<String>; ID_1, ID_2, ID_3, ID_4);
 

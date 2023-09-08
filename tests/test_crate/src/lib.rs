@@ -22,3 +22,14 @@ pub const EARTH: EarthMap<usize> = static_map::static_map!(
 );
 
 pub const EARTH_AFRICA: usize = *EARTH.get(EarthMap::Africa);
+
+pub const LUA: EarthMap<usize> = static_map::static_map!(
+    EarthMap;
+    Asia                = *EARTH.get(EarthMap::Asia) * 2,
+    Africa              = *EARTH.get(EarthMap::Africa) * 2,
+    America_North       = *EARTH.get(EarthMap::America_North) * 2,
+    America_South       = *EARTH.get(EarthMap::America_South) * 2,
+    Antarctica          = *EARTH.get(EarthMap::Antarctica) * 2,
+    Europe              = *EARTH.get(EarthMap::Europe) * 2,
+    Australia           = *EARTH.get(EarthMap::Australia) * 2,
+);

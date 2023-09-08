@@ -38,6 +38,8 @@ macro_rules! static_map {
             )*
         }
     };
+    (@ __sum_ids $first:ident) => { $first };
+    (@ __sum_ids $first:ident $($rest:ident)*) => { $first + $crate::static_map!(@ __sum_ids $($rest)*) };
     (@ __count_ids $first:ident) => { 1 };
     (@ __count_ids $first:ident, $($rest:ident),*) => { 1 + $crate::static_map!(@ __count_ids $($rest),*) };
     (@ __gen_property $struct_name:path, $index:expr, $first:ident) => {
@@ -59,6 +61,7 @@ macro_rules! static_map {
                 #[$($derive_block)*]
             )*
             $publicity struct $name<T> {
+                // note: can we hide the field somehow?
                 list: [T; [<__private_size_ $name>]::SIZE],
             }
 
@@ -145,6 +148,31 @@ macro_rules! static_map {
                 pub fn iter_mut(&mut self) -> impl IntoIterator<Item=&mut T> {
                     self.list.iter_mut()
                 }
+
+                /// Map values to new ones.
+                pub fn map<R, F>(&self, func: F) -> $name<R>
+                where
+                    F: Fn(&T) -> R,
+                {
+                    $name {
+                        list: [
+                            $(
+                                {
+                                    let value = self.get($name::$id);
+                                    func(value)
+                                }
+                            ),*
+                        ]
+                    }
+                }
+
+                /// Sums values together.
+                pub fn sum<'a, R>(&'a self) -> R
+                where
+                    R: core::iter::Sum<&'a T>
+                {
+                    self.list.iter().sum()
+                }
             }
 
             #[allow(unused)]
@@ -164,6 +192,15 @@ macro_rules! static_map {
                     [
                         $(
                             $name::$id
+                        ),*
+                    ]
+                }
+
+                /// Get an list of keys names supported.
+                pub const fn names() -> [&'static str; [<__private_size_ $name>]::SIZE] {
+                    [
+                        $(
+                            stringify!($id)
                         ),*
                     ]
                 }
@@ -299,6 +336,31 @@ macro_rules! static_map {
                 pub fn iter_mut(&mut self) -> impl IntoIterator<Item=&mut $name_type> {
                     self.list.iter_mut()
                 }
+
+                /// Map values to new ones.
+                pub fn map<F>(&self, func: F) -> $name
+                where
+                    F: Fn(&$name_type) -> $name_type,
+                {
+                    $name {
+                        list: [
+                            $(
+                                {
+                                    let value = self.get($name::$id);
+                                    func(value)
+                                }
+                            ),*
+                        ]
+                    }
+                }
+
+                /// Sums values together.
+                pub fn sum<'a, R>(&'a self) -> R
+                where
+                    R: core::iter::Sum<&'a $name_type>
+                {
+                    self.list.iter().sum()
+                }
             }
 
             #[allow(unused)]
@@ -318,6 +380,15 @@ macro_rules! static_map {
                     [
                         $(
                             $name::$id
+                        ),*
+                    ]
+                }
+
+                /// Get an list of keys names supported.
+                pub const fn names() -> [&'static str; [<__private_size_ $name>]::SIZE] {
+                    [
+                        $(
+                            stringify!($id)
                         ),*
                     ]
                 }
@@ -376,6 +447,11 @@ macro_rules! static_map {
 
 #[cfg(test)]
 mod tests {
+    extern crate std;
+    use std::format;
+    use std::prelude::rust_2021::*;
+    use std::vec;
+
     use super::*;
 
     #[test]
@@ -478,7 +554,6 @@ mod tests {
 
     #[rustfmt::skip]
     #[test]
-    #[cfg(std)]
     fn check_interface() {
         static_map!(#[derive(Debug, Clone)] Map; ID_1, ID_2, ID_3, ID_4);
 
@@ -521,7 +596,6 @@ mod tests {
 
     #[rustfmt::skip]
     #[test]
-    #[cfg(std)]
     fn check_interface_generic() {
         static_map!(#[derive(Debug, Clone)] Map<String>; ID_1, ID_2, ID_3, ID_4);
 

@@ -2,12 +2,15 @@
 
 A rust macro to build a static `Map` based on const array.
 
+## Get started
+
+The idea is that you define your map first, and then you can use it wheather nessary.
 
 ```rust
 use static_map::static_map;
 
 static_map!(
-    pub Continents;
+    Continents;
     ASIA,
     AFRICA,
     AMERICA_NORTH,
@@ -17,7 +20,7 @@ static_map!(
     AUSTRALIA,
 );
 
-pub const CONTINENT_SQUARE_MILES: Continents<usize> = static_map!(
+const CONTINENT_SQUARE_MILES: Continents<usize> = static_map!(
     Continents;
     ASIA                = 17_212_000,
     AFRICA              = 11_608_000,
@@ -28,32 +31,57 @@ pub const CONTINENT_SQUARE_MILES: Continents<usize> = static_map!(
     AUSTRALIA           = 2_968_000,
 );
 
-pub const CONTINENT_SQUARE_MILES_TOTAL: usize = *CONTINENT_SQUARE_MILES.get(Continents::ASIA)
-    + *CONTINENT_SQUARE_MILES.get(Continents::AFRICA)
-    + *CONTINENT_SQUARE_MILES.get(Continents::AMERICA_NORTH)
-    + *CONTINENT_SQUARE_MILES.get(Continents::AMERICA_SOUTH)
-    + *CONTINENT_SQUARE_MILES.get(Continents::ANTARCTICA)
-    + *CONTINENT_SQUARE_MILES.get(Continents::EUROPE)
-    + *CONTINENT_SQUARE_MILES.get(Continents::AUSTRALIA);
+fn main() {
+    for (sq_miles, continent) in CONTINENT_SQUARE_MILES.into_iter().zip(Continents::names()) {
+        println!("{continent:15} = {sq_miles:10} (sq mi)");
+    }
+}
+```
 
-pub const CONTINENT_SQUARE_MILES_PERSENT: Continents<f32> = static_map!(
-    Continents;
-    ASIA                = (*CONTINENT_SQUARE_MILES.get(Continents::ASIA) * 100) as f32 / CONTINENT_SQUARE_MILES_TOTAL as f32,
-    AFRICA              = (*CONTINENT_SQUARE_MILES.get(Continents::AFRICA) * 100) as f32 / CONTINENT_SQUARE_MILES_TOTAL as f32,
-    AMERICA_NORTH       = (*CONTINENT_SQUARE_MILES.get(Continents::AMERICA_NORTH) * 100) as f32 / CONTINENT_SQUARE_MILES_TOTAL as f32,
-    AMERICA_SOUTH       = (*CONTINENT_SQUARE_MILES.get(Continents::AMERICA_SOUTH) * 100) as f32 / CONTINENT_SQUARE_MILES_TOTAL as f32,
-    ANTARCTICA          = (*CONTINENT_SQUARE_MILES.get(Continents::ANTARCTICA) * 100) as f32 / CONTINENT_SQUARE_MILES_TOTAL as f32,
-    EUROPE              = (*CONTINENT_SQUARE_MILES.get(Continents::EUROPE) * 100) as f32 / CONTINENT_SQUARE_MILES_TOTAL as f32,
-    AUSTRALIA           = (*CONTINENT_SQUARE_MILES.get(Continents::AUSTRALIA) * 100) as f32 / CONTINENT_SQUARE_MILES_TOTAL as f32,
+You shall expect to get the following output in `stdout`.
+
+```text
+ASIA            =   17212000 (sq mi)
+AFRICA          =   11608000 (sq mi)
+AMERICA_NORTH   =    9365000 (sq mi)
+AMERICA_SOUTH   =    6880000 (sq mi)
+ANTARCTICA      =    5100000 (sq mi)
+EUROPE          =    3837000 (sq mi)
+AUSTRALIA       =    2968000 (sq mi)
+```
+
+You can modify the built map (even in `const` context if allowed).
+
+```rust
+use static_map::static_map;
+
+static_map!(
+    Continents<usize>;
+    ASIA,
+    AFRICA,
+    AMERICA_NORTH,
+    AMERICA_SOUTH,
+    ANTARCTICA,
+    EUROPE,
+    AUSTRALIA,
 );
 
 fn main() {
-    for ((continent, sq_miles), sq_persent) in Continents::names()
-        .into_iter()
-        .zip(CONTINENT_SQUARE_MILES)
-        .zip(CONTINENT_SQUARE_MILES_PERSENT)
-    {
-        println!("{continent:15} = {sq_miles:10} (sq mi) {sq_persent:6.2} (%)");
-    }
+    let mut continents = static_map!(
+        Continents;
+        ASIA                = 17_212_000,
+        AFRICA              = 11_608_000,
+        AMERICA_NORTH       = 9_365_000,
+        AMERICA_SOUTH       = 6_880_000,
+        ANTARCTICA          = 5_100_000,
+        EUROPE              = 3_837_000,
+        AUSTRALIA           = 2_968_000,
+    );
+
+    continents.set(Continents::ASIA, 17_212_001);
+    assert_eq!(continents[Continents::ASIA], 17_212_001);
+
+    continents = continents.map(|value| value * 2);
+    assert_eq!(continents[Continents::ASIA], 17_212_001 * 2);
 }
 ```

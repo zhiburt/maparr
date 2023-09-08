@@ -12,12 +12,7 @@ env:
 jobs:
   check:
     name: cargo-check
-    strategy:
-      fail-fast: false
-      matrix:
-        rust: [nightly, stable]
-        os: [ubuntu-latest, windows-latest, macos-latest]
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@master

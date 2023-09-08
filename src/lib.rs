@@ -1,3 +1,60 @@
+//! # static_map (help with array based map)
+//!
+//! A rust macro to build a static `Map` based on const array.
+//!
+//! The idea is that you define your map first, and then you can use it wheather nessary.
+//!
+//! The only macro which is exported is [`static_map`].
+//! Open it's documentation to see its syntax and what are the methods available to you after definition.
+//!
+//! ## Example
+//!
+//! Basic example.
+//!
+//! ```
+//! use static_map::static_map;
+//!
+//! static_map!(Planets; Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, Neptune);
+//!
+//! let planets_weight_10x24kg = static_map!(
+//!     Planets;
+//!     Mercury = 0.33,
+//!     Venus   = 4.87,
+//!     Earth   = 5.97,
+//!     Mars    = 0.642,
+//!     Jupiter = 1898.0,
+//!     Saturn  = 568.0,
+//!     Uranus  = 86.8,
+//!     Neptune = 102.0,
+//! );
+//!
+//! assert_eq!(planets_weight_10x24kg[Planets::Neptune], 102.0);
+//! ```
+//!
+//! Use as a constant example.
+//!
+//! ```
+//! use static_map::static_map;
+//!
+//! static_map!(Planets; Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, Neptune);
+//!
+//! const PLANETS_DISTANCE_AU: Planets<f32> = static_map!(
+//!     Planets;
+//!     Mercury = 0.39,
+//!     Venus   = 0.72,
+//!     Earth   = 1.00,
+//!     Mars    = 1.52,
+//!     Jupiter = 5.20,
+//!     Saturn  = 9.54,
+//!     Uranus  = 19.22,
+//!     Neptune = 30.06,
+//! );
+//!
+//! for (distance, id) in PLANETS_DISTANCE_AU.iter().into_iter().cloned().zip(Planets::keys()) {
+//!     assert_eq!(PLANETS_DISTANCE_AU[id], distance);
+//! }
+//! ```
+
 #![no_std]
 
 #[allow(unused)]
@@ -5,7 +62,8 @@
 pub use paste as __private_paste;
 
 #[macro_export]
-macro_rules! static_map {
+#[doc(hidden)]
+macro_rules! __private_static_map {
     (@ __check_uniq_ident $($idents:ident)*) => {
         {
             #[allow(dead_code, non_camel_case_types)]
@@ -14,7 +72,7 @@ macro_rules! static_map {
     };
     (@ __check_size_ident $name:ident $($idents:ident)*) => {
         {
-            let size = $crate::static_map!(@ __count_ids $($idents),*);
+            let size = $crate::__private_static_map!(@ __count_ids $($idents),*);
             let expected = $name::len();
             if size > expected {
                 panic!(concat!("parameter list is too big"));
@@ -39,9 +97,9 @@ macro_rules! static_map {
         }
     };
     (@ __sum_ids $first:ident) => { $first };
-    (@ __sum_ids $first:ident $($rest:ident)*) => { $first + $crate::static_map!(@ __sum_ids $($rest)*) };
+    (@ __sum_ids $first:ident $($rest:ident)*) => { $first + $crate::__private_static_map!(@ __sum_ids $($rest)*) };
     (@ __count_ids $first:ident) => { 1 };
-    (@ __count_ids $first:ident, $($rest:ident),*) => { 1 + $crate::static_map!(@ __count_ids $($rest),*) };
+    (@ __count_ids $first:ident, $($rest:ident),*) => { 1 + $crate::__private_static_map!(@ __count_ids $($rest),*) };
     (@ __gen_property $struct_name:path, $index:expr, $first:ident) => {
         /// ID
         #[doc = stringify!($first)]
@@ -52,7 +110,7 @@ macro_rules! static_map {
         #[doc = stringify!($first)]
        pub const $first: $struct_name = $struct_name($index);
 
-       $crate::static_map!(@ __gen_property $struct_name, $index + 1, $($rest),*);
+       $crate::__private_static_map!(@ __gen_property $struct_name, $index + 1, $($rest),*);
     };
     (  $(#[$($derive_block:tt)*])* $publicity:vis $name:ident; $($id:ident),* $(,)?) => {
         $crate::__private_paste::paste!{
@@ -68,7 +126,7 @@ macro_rules! static_map {
             #[doc(hidden)]
             #[allow(non_snake_case)]
             mod [<__private_size_ $name>] {
-                pub(super) const SIZE: usize = $crate::static_map!(@ __count_ids $($id),*);
+                pub(super) const SIZE: usize = $crate::__private_static_map!(@ __count_ids $($id),*);
             }
 
             #[doc(hidden)]
@@ -86,7 +144,7 @@ macro_rules! static_map {
             }
 
             impl $name<()> {
-                $crate::static_map!(@ __gen_property [<__private_id_ $name>]::ID, 0, $($id),*);
+                $crate::__private_static_map!(@ __gen_property [<__private_id_ $name>]::ID, 0, $($id),*);
             }
 
             #[allow(unused)]
@@ -256,7 +314,7 @@ macro_rules! static_map {
             #[doc(hidden)]
             #[allow(non_snake_case)]
             mod [<__private_size_ $name>] {
-                pub(super) const SIZE: usize = $crate::static_map!(@ __count_ids $($id),*);
+                pub(super) const SIZE: usize = $crate::__private_static_map!(@ __count_ids $($id),*);
             }
 
             #[doc(hidden)]
@@ -274,7 +332,7 @@ macro_rules! static_map {
             }
 
             impl $name {
-                $crate::static_map!(@ __gen_property [<__private_id_ $name>]::ID, 0, $($id),*);
+                $crate::__private_static_map!(@ __gen_property [<__private_id_ $name>]::ID, 0, $($id),*);
             }
 
             #[allow(unused)]
@@ -432,9 +490,9 @@ macro_rules! static_map {
     };
     ( $name:ident; $($id:ident = $id_value:expr),* $(,)?) => {
         {
-            $crate::static_map!(@ __check_uniq_ident $($id)*);
-            $crate::static_map!(@ __check_order_ident $name $($id)*);
-            $crate::static_map!(@ __check_size_ident $name $($id)*);
+            $crate::__private_static_map!(@ __check_uniq_ident $($id)*);
+            $crate::__private_static_map!(@ __check_order_ident $name $($id)*);
+            $crate::__private_static_map!(@ __check_size_ident $name $($id)*);
 
             $name {
                 list: [
@@ -442,6 +500,78 @@ macro_rules! static_map {
                 ],
             }
         }
+    };
+}
+
+/// A macros for `declaration` and `definition` of a `static_map` type.
+///
+/// Macros has a few syntax options:
+///
+/// 1. `static_map!(STRUCTURE_NAME; VARIANT_NAME_0, VARIANT_NAME_1, VARIANT_NAME_2)` - Define a type for map with a given set of variants as expected IDs.
+/// 2. `static_map!(STRUCTURE_NAME<TYPE_NAME>; VARIANT_NAME_0, VARIANT_NAME_1, VARIANT_NAME_2)` - Define a type for map with a given set of variants as expected IDs, compared to 1st option it specifies a value type.
+/// 3. `static_map!(STRUCTURE_NAME; VARIANT_NAME_0 = VALUE_0, VARIANT_NAME_1 = VALUE_1)` - Creates an object of a given static map.
+///
+/// # Examples
+///
+/// ## Example 1
+///
+/// ```
+/// use static_map::static_map;
+/// static_map!(Map; ID1, ID2);
+/// ```
+///
+/// ## Example 2
+///
+/// ```
+/// use static_map::static_map;
+/// static_map!(Map<usize>; ID1, ID2);
+/// ```
+///
+/// ## Example 3
+///
+/// ```
+/// use static_map::static_map;
+/// static_map!(Map; ID1, ID2);
+/// let m = static_map!(Map; ID1 = 10, ID2 = 100);
+/// ```
+///
+/// # Generated api you can expect to see
+///
+/// - `Self::new` creates a new instance of static map (analog of [`static_map`] as a 3rd case, but macro can be used in const context).
+/// - `Self::get` gets a value by id.
+/// - `Self::get_mut` gets a value by id.
+/// - `Self::iter` return an iterator over values.
+/// - `Self::iter_mut` return an iterator over values.
+/// - `Self::into_iter` return an iterator over values.
+/// - `Self::map` converts each value by a given function.
+/// - `Self::sum` returns an accamulation of values.
+/// - `Self::len` return amount of keys.
+/// - `Self::is_empty` checks whether the map is empty (has 0 keys).
+/// - `Self::keys` returns list of `ID`s.
+/// - `Self::names` returns list of `ID` names.
+#[macro_export]
+macro_rules! static_map {
+    (  $(#[$($derive_block:tt)*])* $publicity:vis $name:ident; $($id:ident),* $(,)?) => {
+        $crate::__private_static_map!(
+            $(#[$($derive_block)*])*
+            $publicity
+            $name;
+            $($id),*
+        );
+    };
+    (  $(#[$($derive_block:tt)*])* $publicity:vis $name:ident<$name_type:ty>; $($id:ident),* $(,)?) => {
+        $crate::__private_static_map!(
+            $(#[$($derive_block)*])*
+            $publicity
+            $name<$name_type>;
+            $($id),*
+        );
+    };
+    ( $name:ident; $($id:ident = $id_value:expr),* $(,)?) => {
+        $crate::__private_static_map!(
+            $name;
+            $($id = $id_value),*
+        )
     };
 }
 

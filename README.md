@@ -85,3 +85,11 @@ fn main() {
     assert_eq!(continents[Continents::ASIA], 17_212_001 * 2);
 }
 ```
+
+### Analogues
+
+After being done I've got to know that there's already some takes on the same problem.
+The list just have the ones I've found, there might be other/better ones.
+
+- https://crates.io/crates/const_map
+- https://crates.io/crates/array_map

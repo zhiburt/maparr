@@ -1,4 +1,4 @@
-# static_map (help with array based dictionaries) 📙
+# `static_map` (help with array based dictionaries) 📙
 
 A rust macro to build a static `Map` based on const array.
 

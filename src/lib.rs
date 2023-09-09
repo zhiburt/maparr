@@ -1,10 +1,10 @@
-//! # static_map (help with array based map)
+//! # maparr (help with array based maps)
 //!
 //! A rust macro to build a static `Map` based on const array.
 //!
 //! The idea is that you define your map first, and then you can use it wheather nessary.
 //!
-//! The only macro which is exported is [`static_map`].
+//! The only macro which is exported is [`maparr`].
 //! Open it's documentation to see its syntax and what are the methods available to you after definition.
 //!
 //! ## Example
@@ -12,11 +12,11 @@
 //! Basic example.
 //!
 //! ```
-//! use static_map::static_map;
+//! use maparr::maparr;
 //!
-//! static_map!(Planets; Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, Neptune);
+//! maparr!(Planets; Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, Neptune);
 //!
-//! let planets_weight_10x24kg = static_map!(
+//! let planets_weight_10x24kg = maparr!(
 //!     Planets;
 //!     Mercury = 0.33,
 //!     Venus   = 4.87,
@@ -34,11 +34,11 @@
 //! Use as a constant example.
 //!
 //! ```
-//! use static_map::static_map;
+//! use maparr::maparr;
 //!
-//! static_map!(Planets; Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, Neptune);
+//! maparr!(Planets; Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, Neptune);
 //!
-//! const PLANETS_DISTANCE_AU: Planets<f32> = static_map!(
+//! const PLANETS_DISTANCE_AU: Planets<f32> = maparr!(
 //!     Planets;
 //!     Mercury = 0.39,
 //!     Venus   = 0.72,
@@ -63,7 +63,7 @@ pub use paste as __private_paste;
 
 #[macro_export]
 #[doc(hidden)]
-macro_rules! __private_static_map {
+macro_rules! __private_maparr {
     (@ __check_uniq_ident $($idents:ident)*) => {
         {
             #[allow(dead_code, non_camel_case_types)]
@@ -72,7 +72,7 @@ macro_rules! __private_static_map {
     };
     (@ __check_size_ident $name:ident $($idents:ident)*) => {
         {
-            let size = $crate::__private_static_map!(@ __count_ids $($idents),*);
+            let size = $crate::__private_maparr!(@ __count_ids $($idents),*);
             let expected = $name::len();
             if size > expected {
                 panic!(concat!("parameter list is too big"));
@@ -97,9 +97,9 @@ macro_rules! __private_static_map {
         }
     };
     (@ __sum_ids $first:ident) => { $first };
-    (@ __sum_ids $first:ident $($rest:ident)*) => { $first + $crate::__private_static_map!(@ __sum_ids $($rest)*) };
+    (@ __sum_ids $first:ident $($rest:ident)*) => { $first + $crate::__private_maparr!(@ __sum_ids $($rest)*) };
     (@ __count_ids $first:ident) => { 1 };
-    (@ __count_ids $first:ident, $($rest:ident),*) => { 1 + $crate::__private_static_map!(@ __count_ids $($rest),*) };
+    (@ __count_ids $first:ident, $($rest:ident),*) => { 1 + $crate::__private_maparr!(@ __count_ids $($rest),*) };
     (@ __gen_property $struct_name:path, $index:expr, $first:ident) => {
         /// ID
         #[doc = stringify!($first)]
@@ -110,7 +110,7 @@ macro_rules! __private_static_map {
         #[doc = stringify!($first)]
        pub const $first: $struct_name = $struct_name($index);
 
-       $crate::__private_static_map!(@ __gen_property $struct_name, $index + 1, $($rest),*);
+       $crate::__private_maparr!(@ __gen_property $struct_name, $index + 1, $($rest),*);
     };
     (  $(#[$($derive_block:tt)*])* $publicity:vis $name:ident; $($id:ident),* $(,)?) => {
         $crate::__private_paste::paste!{
@@ -126,7 +126,7 @@ macro_rules! __private_static_map {
             #[doc(hidden)]
             #[allow(non_snake_case)]
             mod [<__private_size_ $name>] {
-                pub(super) const SIZE: usize = $crate::__private_static_map!(@ __count_ids $($id),*);
+                pub(super) const SIZE: usize = $crate::__private_maparr!(@ __count_ids $($id),*);
             }
 
             #[doc(hidden)]
@@ -144,7 +144,7 @@ macro_rules! __private_static_map {
             }
 
             impl $name<()> {
-                $crate::__private_static_map!(@ __gen_property [<__private_id_ $name>]::ID, 0, $($id),*);
+                $crate::__private_maparr!(@ __gen_property [<__private_id_ $name>]::ID, 0, $($id),*);
             }
 
             #[allow(unused)]
@@ -314,7 +314,7 @@ macro_rules! __private_static_map {
             #[doc(hidden)]
             #[allow(non_snake_case)]
             mod [<__private_size_ $name>] {
-                pub(super) const SIZE: usize = $crate::__private_static_map!(@ __count_ids $($id),*);
+                pub(super) const SIZE: usize = $crate::__private_maparr!(@ __count_ids $($id),*);
             }
 
             #[doc(hidden)]
@@ -332,7 +332,7 @@ macro_rules! __private_static_map {
             }
 
             impl $name {
-                $crate::__private_static_map!(@ __gen_property [<__private_id_ $name>]::ID, 0, $($id),*);
+                $crate::__private_maparr!(@ __gen_property [<__private_id_ $name>]::ID, 0, $($id),*);
             }
 
             #[allow(unused)]
@@ -490,9 +490,9 @@ macro_rules! __private_static_map {
     };
     ( $name:ident; $($id:ident = $id_value:expr),* $(,)?) => {
         {
-            $crate::__private_static_map!(@ __check_uniq_ident $($id)*);
-            $crate::__private_static_map!(@ __check_order_ident $name $($id)*);
-            $crate::__private_static_map!(@ __check_size_ident $name $($id)*);
+            $crate::__private_maparr!(@ __check_uniq_ident $($id)*);
+            $crate::__private_maparr!(@ __check_order_ident $name $($id)*);
+            $crate::__private_maparr!(@ __check_size_ident $name $($id)*);
 
             $name {
                 list: [
@@ -503,41 +503,41 @@ macro_rules! __private_static_map {
     };
 }
 
-/// A macros for `declaration` and `definition` of a `static_map` type.
+/// A macros for `declaration` and `definition` of a `maparr` type.
 ///
 /// Macros has a few syntax options:
 ///
-/// 1. `static_map!(STRUCTURE_NAME; VARIANT_NAME_0, VARIANT_NAME_1, VARIANT_NAME_2)` - Define a type for map with a given set of variants as expected IDs.
-/// 2. `static_map!(STRUCTURE_NAME<TYPE_NAME>; VARIANT_NAME_0, VARIANT_NAME_1, VARIANT_NAME_2)` - Define a type for map with a given set of variants as expected IDs, compared to 1st option it specifies a value type.
-/// 3. `static_map!(STRUCTURE_NAME; VARIANT_NAME_0 = VALUE_0, VARIANT_NAME_1 = VALUE_1)` - Creates an object of a given static map.
+/// 1. `maparr!(STRUCTURE_NAME; VARIANT_NAME_0, VARIANT_NAME_1, VARIANT_NAME_2)` - Define a type for map with a given set of variants as expected IDs.
+/// 2. `maparr!(STRUCTURE_NAME<TYPE_NAME>; VARIANT_NAME_0, VARIANT_NAME_1, VARIANT_NAME_2)` - Define a type for map with a given set of variants as expected IDs, compared to 1st option it specifies a value type.
+/// 3. `maparr!(STRUCTURE_NAME; VARIANT_NAME_0 = VALUE_0, VARIANT_NAME_1 = VALUE_1)` - Creates an object of a given static map.
 ///
 /// # Examples
 ///
 /// ## Example 1
 ///
 /// ```
-/// use static_map::static_map;
-/// static_map!(Map; ID1, ID2);
+/// use maparr::maparr;
+/// maparr!(Map; ID1, ID2);
 /// ```
 ///
 /// ## Example 2
 ///
 /// ```
-/// use static_map::static_map;
-/// static_map!(Map<usize>; ID1, ID2);
+/// use maparr::maparr;
+/// maparr!(Map<usize>; ID1, ID2);
 /// ```
 ///
 /// ## Example 3
 ///
 /// ```
-/// use static_map::static_map;
-/// static_map!(Map; ID1, ID2);
-/// let m = static_map!(Map; ID1 = 10, ID2 = 100);
+/// use maparr::maparr;
+/// maparr!(Map; ID1, ID2);
+/// let m = maparr!(Map; ID1 = 10, ID2 = 100);
 /// ```
 ///
 /// # Generated api you can expect to see
 ///
-/// - `Self::new` creates a new instance of static map (analog of [`static_map`] as a 3rd case, but macro can be used in const context).
+/// - `Self::new` creates a new instance of static map (analog of [`maparr`] as a 3rd case, but macro can be used in const context).
 /// - `Self::get` gets a value by id.
 /// - `Self::get_mut` gets a value by id.
 /// - `Self::iter` return an iterator over values.
@@ -550,9 +550,9 @@ macro_rules! __private_static_map {
 /// - `Self::keys` returns list of `ID`s.
 /// - `Self::names` returns list of `ID` names.
 #[macro_export]
-macro_rules! static_map {
+macro_rules! maparr {
     (  $(#[$($derive_block:tt)*])* $publicity:vis $name:ident; $($id:ident),* $(,)?) => {
-        $crate::__private_static_map!(
+        $crate::__private_maparr!(
             $(#[$($derive_block)*])*
             $publicity
             $name;
@@ -560,7 +560,7 @@ macro_rules! static_map {
         );
     };
     (  $(#[$($derive_block:tt)*])* $publicity:vis $name:ident<$name_type:ty>; $($id:ident),* $(,)?) => {
-        $crate::__private_static_map!(
+        $crate::__private_maparr!(
             $(#[$($derive_block)*])*
             $publicity
             $name<$name_type>;
@@ -568,7 +568,7 @@ macro_rules! static_map {
         );
     };
     ( $name:ident; $($id:ident = $id_value:expr),* $(,)?) => {
-        $crate::__private_static_map!(
+        $crate::__private_maparr!(
             $name;
             $($id = $id_value),*
         )
@@ -585,8 +585,8 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_static_map_generic() {
-        static_map!(Map; ID1, ID2);
+    fn test_maparr_generic() {
+        maparr!(Map; ID1, ID2);
 
         let map = Map::new((Map::ID1, 1), (Map::ID2, 2));
         assert_eq!(map[Map::ID1], 1);
@@ -594,8 +594,8 @@ mod tests {
     }
 
     #[test]
-    fn test_static_map() {
-        static_map!(Map<usize>; ID1, ID2);
+    fn test_maparr() {
+        maparr!(Map<usize>; ID1, ID2);
 
         let map = Map::new((Map::ID1, 1), (Map::ID2, 2));
         assert_eq!(map[Map::ID1], 1);
@@ -603,18 +603,18 @@ mod tests {
     }
 
     #[test]
-    fn test_static_map_value() {
-        static_map!(Map<usize>; ID1, ID2);
-        const MAP: Map = static_map!(Map; ID1 = 1, ID2 = 2);
+    fn test_maparr_value() {
+        maparr!(Map<usize>; ID1, ID2);
+        const MAP: Map = maparr!(Map; ID1 = 1, ID2 = 2);
 
         assert_eq!(MAP[Map::ID1], 1);
         assert_eq!(MAP[Map::ID2], 2);
     }
 
     #[test]
-    fn test_static_map_generic_value() {
-        static_map!(Map; ID1, ID2);
-        const MAP: Map<bool> = static_map!(Map; ID1 = false, ID2 = true);
+    fn test_maparr_generic_value() {
+        maparr!(Map; ID1, ID2);
+        const MAP: Map<bool> = maparr!(Map; ID1 = false, ID2 = true);
 
         assert!(!MAP[Map::ID1]);
         assert!(MAP[Map::ID2]);
@@ -622,16 +622,16 @@ mod tests {
 
     #[test]
     #[should_panic]
-    fn test_static_map_generic_value_wrong_sorting() {
-        static_map!(Map; ID1, ID2);
-        let _map = static_map!(Map; ID2 = false, ID1 = false);
+    fn test_maparr_generic_value_wrong_sorting() {
+        maparr!(Map; ID1, ID2);
+        let _map = maparr!(Map; ID2 = false, ID1 = false);
     }
 
     #[test]
     #[should_panic]
-    fn test_static_map_value_wrong_sorting() {
-        static_map!(Map<bool>; ID1, ID2);
-        let _map = static_map!(Map; ID2 = false, ID1 = false);
+    fn test_maparr_value_wrong_sorting() {
+        maparr!(Map<bool>; ID1, ID2);
+        let _map = maparr!(Map; ID2 = false, ID1 = false);
     }
 
     #[allow(non_upper_case_globals)]
@@ -654,12 +654,12 @@ mod tests {
         macro_rules! test_type {
             ($($list:ty)*) => {
                 $(
-                    { static_map!(pub           Map<$list>; ID1, ID2, ID_3, id1, id_1); }
-                    { static_map!(              Map<$list>; ID1, ID2, ID_3, id1, id_1); }
-                    { static_map!(pub(crate)    Map<$list>; ID1, ID2, ID_3, id1, id_1); }
+                    { maparr!(pub           Map<$list>; ID1, ID2, ID_3, id1, id_1); }
+                    { maparr!(              Map<$list>; ID1, ID2, ID_3, id1, id_1); }
+                    { maparr!(pub(crate)    Map<$list>; ID1, ID2, ID_3, id1, id_1); }
 
                     {
-                        static_map!(
+                        maparr!(
                             #[derive(Debug)]
                             Map<$list>;
                             ID1, ID2, ID_3, id1, id_1
@@ -667,7 +667,7 @@ mod tests {
                     }
 
                     {
-                        static_map!(
+                        maparr!(
                             #[derive(Debug, Clone)]
                             #[derive(Hash)]
                             Map<$list>;
@@ -685,7 +685,7 @@ mod tests {
     #[rustfmt::skip]
     #[test]
     fn check_interface() {
-        static_map!(#[derive(Debug, Clone)] Map; ID_1, ID_2, ID_3, ID_4);
+        maparr!(#[derive(Debug, Clone)] Map; ID_1, ID_2, ID_3, ID_4);
 
         let mut value = Map::new(
             (Map::ID_1, "Hello"),
@@ -727,7 +727,7 @@ mod tests {
     #[rustfmt::skip]
     #[test]
     fn check_interface_generic() {
-        static_map!(#[derive(Debug, Clone)] Map<String>; ID_1, ID_2, ID_3, ID_4);
+        maparr!(#[derive(Debug, Clone)] Map<String>; ID_1, ID_2, ID_3, ID_4);
 
         let mut value = Map::new(
             (Map::ID_1, String::from("Hello")),

@@ -1,6 +1,6 @@
-use static_map::static_map;
+use maparr::maparr;
 
-static_map!(
+maparr!(
     Continents;
     ASIA,
     AFRICA,
@@ -11,7 +11,7 @@ static_map!(
     AUSTRALIA,
 );
 
-const CONTINENT_SQUARE_MILES: Continents<usize> = static_map!(
+const CONTINENT_SQUARE_MILES: Continents<usize> = maparr!(
     Continents;
     ASIA                = 17_212_000,
     AFRICA              = 11_608_000,

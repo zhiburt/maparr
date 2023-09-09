@@ -1,4 +1,4 @@
-# `static_map` (help with array based dictionaries) 📙
+# `maparr` (help with array based maps) 📙
 
 A rust macro to build a static `Map` based on const array.
 
@@ -7,9 +7,9 @@ A rust macro to build a static `Map` based on const array.
 The idea is that you define your map first, and then you can use it wheather nessary.
 
 ```rust
-use static_map::static_map;
+use maparr::maparr;
 
-static_map!(
+maparr!(
     Continents;
     ASIA,
     AFRICA,
@@ -20,7 +20,7 @@ static_map!(
     AUSTRALIA,
 );
 
-const CONTINENT_SQUARE_MILES: Continents<usize> = static_map!(
+const CONTINENT_SQUARE_MILES: Continents<usize> = maparr!(
     Continents;
     ASIA                = 17_212_000,
     AFRICA              = 11_608_000,
@@ -53,9 +53,9 @@ AUSTRALIA       =    2968000 (sq mi)
 You can modify the built map (even in `const` context if allowed).
 
 ```rust
-use static_map::static_map;
+use maparr::maparr;
 
-static_map!(
+maparr!(
     Continents<usize>;
     ASIA,
     AFRICA,
@@ -67,7 +67,7 @@ static_map!(
 );
 
 fn main() {
-    let mut continents = static_map!(
+    let mut continents = maparr!(
         Continents;
         ASIA                = 17_212_000,
         AFRICA              = 11_608_000,

@@ -1,4 +1,6 @@
-static_map::static_map!(
+use maparr::maparr;
+
+maparr!(
     #[derive(Debug, Clone)]
     pub EarthMap;
     Asia,
@@ -10,7 +12,7 @@ static_map::static_map!(
     Australia,
 );
 
-pub const EARTH: EarthMap<usize> = static_map::static_map!(
+pub const EARTH: EarthMap<usize> = maparr!(
     EarthMap;
     Asia                = 1000,
     Africa              = 2000,
@@ -23,7 +25,7 @@ pub const EARTH: EarthMap<usize> = static_map::static_map!(
 
 pub const EARTH_AFRICA: usize = *EARTH.get(EarthMap::Africa);
 
-pub const LUA: EarthMap<usize> = static_map::static_map!(
+pub const LUA: EarthMap<usize> = maparr!(
     EarthMap;
     Asia                = *EARTH.get(EarthMap::Asia) * 2,
     Africa              = *EARTH.get(EarthMap::Africa) * 2,
